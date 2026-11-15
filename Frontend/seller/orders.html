@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Store Orders | NexCommerce Seller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🏪</div>
+                <div class="sidebar-brand">Seller Portal</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/seller/dashboard.html">📊 Dashboard</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/seller/add-product.html">✨ Add New Product (AI)</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/seller/orders.html">🛍️ Store Orders</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/products.html">📦 Public Catalog</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/seller/dashboard.html" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← Back to Dashboard</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Customer Orders Management</h2>
+                <a href="/seller/dashboard.html" class="btn btn-outline btn-sm">Dashboard Overview</a>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">All Customer Orders Containing Your Items</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order Ref</th>
+                                <th>Date</th>
+                                <th>Delivery Address</th>
+                                <th>Items Ordered</th>
+                                <th>Total</th>
+                                <th>Current Status</th>
+                                <th>Update Fulfillment</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seller-orders-tbody">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['seller'])) return;
+            await loadSellerOrders();
+        });
+
+        async function loadSellerOrders() {
+            const tbody = document.getElementById('seller-orders-tbody');
+            try {
+                const orders = await API.get('/seller/orders');
+                if (!orders || orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No customer orders received yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td style="font-weight: 800; color: var(--primary);">#ORD-${o.id.toString().padStart(5, '0')}</td>
+                        <td style="color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString()}</td>
+                        <td style="max-width: 200px; font-size: 0.85rem;">${o.shipping_address}</td>
+                        <td>
+                            <div style="font-size: 0.85rem;">
+                                ${(o.items || []).map(i => `<div>• ${i.product ? i.product.name : 'Item'} (x${i.quantity})</div>`).join('')}
+                            </div>
+                        </td>
+                        <td style="font-weight: 800;">${formatCurrency(o.total_amount)}</td>
+                        <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
+                        <td>
+                            <select class="form-select" style="padding: 6px 10px; font-size: 0.85rem; width: auto;" onchange="updateStatus(${o.id}, this.value)">
+                                <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444;">Error loading orders.</td></tr>`;
+            }
+        }
+
+        async function updateStatus(orderId, newStatus) {
+            try {
+                await API.put(`/seller/orders/${orderId}/status`, { status: newStatus });
+                showToast(`Order #ORD-${orderId} updated to ${newStatus}!`, 'success');
+                await loadSellerOrders();
+            } catch (err) {
+                showToast(err.message || 'Error updating order status.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+

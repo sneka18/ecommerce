@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product | NexCommerce Seller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🏪</div>
+                <div class="sidebar-brand">Seller Portal</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/seller/dashboard.html">📊 Dashboard</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="#">✏️ Edit Product</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/seller/orders.html">🛍️ Store Orders</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/products.html">📦 Public Catalog</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/seller/dashboard.html" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← Back to Dashboard</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Edit Product Details</h2>
+                <a href="/seller/dashboard.html" class="btn btn-outline btn-sm">Cancel</a>
+            </header>
+
+            <div class="dashboard-content" style="max-width: 900px;">
+                <div class="table-card" style="padding: 32px;">
+                    <form id="edit-product-form">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="edit-prod-name">Product Name *</label>
+                                <input type="text" id="edit-prod-name" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="edit-prod-category">Category *</label>
+                                <select id="edit-prod-category" class="form-select" required></select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="edit-prod-price">Retail Price ($) *</label>
+                                <input type="number" id="edit-prod-price" class="form-input" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="edit-prod-stock">Available Stock *</label>
+                                <input type="number" id="edit-prod-stock" class="form-input" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="edit-prod-image">Image URL</label>
+                            <input type="url" id="edit-prod-image" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="edit-prod-desc">Description</label>
+                            <textarea id="edit-prod-desc" class="form-textarea" rows="4"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="edit-prod-highlights">Highlights</label>
+                            <textarea id="edit-prod-highlights" class="form-textarea" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="edit-prod-specs">Specifications (JSON Format)</label>
+                            <textarea id="edit-prod-specs" class="form-textarea" rows="3"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 14px; margin-top: 32px;">
+                            <button type="submit" id="update-btn" class="btn btn-primary btn-lg" style="flex: 1;">
+                                💾 Update Product
+                            </button>
+                            <a href="/seller/dashboard.html" class="btn btn-outline btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        let editProductId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['seller'])) return;
+            const params = new URLSearchParams(window.location.search);
+            editProductId = parseInt(params.get('id'));
+
+            if (!editProductId) {
+                showToast('Product ID not found.', 'error');
+                setTimeout(() => window.location.href = '/seller/dashboard.html', 800);
+                return;
+            }
+
+            await loadCategoriesDropdown();
+            await loadExistingProduct();
+        });
+
+        async function loadCategoriesDropdown() {
+            try {
+                const categories = await API.get('/categories');
+                const select = document.getElementById('edit-prod-category');
+                categories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.innerText = c.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadExistingProduct() {
+            try {
+                const prod = await API.get(`/products/${editProductId}`);
+                document.getElementById('edit-prod-name').value = prod.name;
+                document.getElementById('edit-prod-category').value = prod.category_id;
+                document.getElementById('edit-prod-price').value = prod.price;
+                document.getElementById('edit-prod-stock').value = prod.stock;
+                document.getElementById('edit-prod-image').value = prod.image_url || '';
+                document.getElementById('edit-prod-desc').value = prod.description || prod.ai_description || '';
+                document.getElementById('edit-prod-highlights').value = prod.highlights || '';
+                document.getElementById('edit-prod-specs').value = prod.specifications || '';
+            } catch (err) {
+                showToast(err.message || 'Error loading product.', 'error');
+            }
+        }
+
+        document.getElementById('edit-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('update-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span> Updating...`;
+
+            let specsJson = document.getElementById('edit-prod-specs').value.trim();
+            if (specsJson) {
+                try {
+                    JSON.parse(specsJson);
+                } catch {
+                    showToast('Invalid JSON in Specifications. Please verify format.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '💾 Update Product';
+                    return;
+                }
+            }
+
+            const payload = {
+                name: document.getElementById('edit-prod-name').value.trim(),
+                category_id: parseInt(document.getElementById('edit-prod-category').value),
+                price: parseFloat(document.getElementById('edit-prod-price').value),
+                stock: parseInt(document.getElementById('edit-prod-stock').value),
+                image_url: document.getElementById('edit-prod-image').value.trim() || null,
+                description: document.getElementById('edit-prod-desc').value.trim() || null,
+                highlights: document.getElementById('edit-prod-highlights').value.trim() || null,
+                specifications: specsJson || null
+            };
+
+            try {
+                await API.put(`/products/${editProductId}`, payload);
+                showToast('Product updated successfully!', 'success');
+                setTimeout(() => window.location.href = '/seller/dashboard.html', 800);
+            } catch (err) {
+                showToast(err.message || 'Error updating product.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '💾 Update Product';
+            }
+        });
+    </script>
+</body>
+</html>
+

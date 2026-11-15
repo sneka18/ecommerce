@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Management | NexCommerce Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">⚙️</div>
+                <div class="sidebar-brand">Admin Console</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin/dashboard.html">📊 Analytics Overview</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/customers.html">👥 Customer Accounts</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/admin/sellers.html">🏪 Seller Merchants</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/products.html">📦 Product Catalog</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/orders.html">🛍️ Platform Orders</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← Back to Overview</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Seller Merchants Directory</h2>
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm">Overview</a>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">Approved Platform Sellers</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Store ID</th>
+                                <th>Store Name</th>
+                                <th>Description</th>
+                                <th>Contact Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sellers-table-body">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading sellers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['admin'])) return;
+            await loadSellers();
+        });
+
+        async function loadSellers() {
+            const tbody = document.getElementById('sellers-table-body');
+            try {
+                const sellers = await API.get('/admin/sellers');
+                if (!sellers || sellers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No sellers registered yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = sellers.map(s => `
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary);">#STR-${s.id}</td>
+                        <td style="font-weight: 700;">${s.store_name}</td>
+                        <td style="font-size: 0.85rem; color: var(--text-secondary); max-width: 250px;">${s.store_description || 'Active store merchant.'}</td>
+                        <td style="color: var(--text-secondary);">${s.business_email || 'N/A'}</td>
+                        <td>${s.phone || 'N/A'}</td>
+                        <td style="font-size: 0.85rem;">${s.address || 'N/A'}</td>
+                        <td><span class="status-badge ${s.is_approved ? 'active' : 'inactive'}">${s.is_approved ? 'Approved' : 'Pending'}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444;">Error loading sellers.</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,22 @@
+product_id,name,category_id,category_name,price,rating,num_reviews,stock
+1,AuraSound Pro Wireless Noise-Cancelling Headphones,1,Electronics,199.99,4.8,42,35
+2,Nova UltraSlim 15.6-inch 4K OLED Laptop,1,Electronics,1249.99,4.9,29,18
+3,PulseFit Active Smartwatch with AMOLED Display,1,Electronics,129.50,4.6,68,50
+4,EchoBeat Mini Waterproof Portable Bluetooth Speaker,1,Electronics,49.99,4.5,54,75
+5,Classic Maverick Genuine Leather Jacket,2,Fashion & Apparel,189.00,4.7,31,25
+6,UrbanAura Minimalist Breathable Running Sneakers,2,Fashion & Apparel,84.99,4.8,89,60
+7,Nordic Weave Merino Wool Crewneck Sweater,2,Fashion & Apparel,79.50,4.6,23,40
+8,BaristaPro Italian Espresso & Cappuccino Machine,3,Home & Living,249.00,4.9,57,20
+9,Lumina Ceramic Ultrasonic Essential Oil Diffuser,3,Home & Living,38.00,4.7,38,45
+10,ApexGrip Adjustable Dumbbell Set (5 - 52.5 lbs),4,Sports & Fitness,299.99,4.9,47,15
+11,ZenFlow High-Density Non-Slip Eco Yoga Mat,4,Sports & Fitness,42.00,4.6,62,65
+12,Executive Hardcover Dotted Journal & Brass Pen Set,5,Books & Stationery,32.50,4.9,74,80
+13,QuantumGlide Gaming Mouse with RGB Lighting,1,Electronics,59.99,4.7,65,40
+14,TitanShield Waterproof Mountain Hiking Backpack 45L,4,Sports & Fitness,89.00,4.8,51,30
+15,SilkTouch Satin Duvet Cover & Pillowcase Set,3,Home & Living,68.00,4.6,34,35
+16,AeroFlight Carbon Fiber Road Bike Helmet,4,Sports & Fitness,119.50,4.7,28,25
+17,Vanguard Polarized Aviator Sunglasses,2,Fashion & Apparel,45.00,4.5,41,55
+18,Artisan Cold Brew Coffee Maker 1.5L,3,Home & Living,34.99,4.8,49,50
+19,Craftsman Vintage Fountain Pen with Ink Bottle,5,Books & Stationery,48.00,4.9,39,45
+20,HyperCharge 65W GaN Fast Wall Charger,1,Electronics,39.99,4.8,92,100
+

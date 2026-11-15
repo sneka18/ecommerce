@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🏪</div>
+                <div class="sidebar-brand">Seller Portal</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active">
+                    <a href="/seller/dashboard.html">📊 Dashboard</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/seller/add-product.html">✨ Add New Product (AI)</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/seller/orders.html">🛍️ Store Orders</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/products.html">📦 Public Catalog</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← View Storefront</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <!-- Topbar -->
+            <header class="dashboard-topbar">
+                <div>
+                    <h2 id="topbar-store-name" style="font-size: 1.25rem; font-weight: 800;">Merchant Dashboard</h2>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <a href="/seller/add-product.html" class="btn btn-ai btn-sm">✨ Add Product with AI</a>
+                    <span id="seller-user-name" style="font-weight: 600; font-size: 0.92rem;">Seller</span>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">💰</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Revenue</span>
+                            <span id="stat-revenue" class="stat-value">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon success">📦</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Store Orders</span>
+                            <span id="stat-orders" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon warning">🏷️</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Listed Products</span>
+                            <span id="stat-products" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon danger">⚠️</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Low Stock Items</span>
+                            <span id="stat-low-stock" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listed Products Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">Your Listed Products</h3>
+                        <a href="/seller/add-product.html" class="btn btn-primary btn-sm">+ Add Product</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seller-products-tbody">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Recent Store Orders Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">Recent Store Orders</h3>
+                        <a href="/seller/orders.html" class="btn btn-outline btn-sm">Manage All Orders →</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seller-recent-orders-tbody">
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading recent orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['seller'])) return;
+            const user = API.getUser();
+            if (user) document.getElementById('seller-user-name').innerText = user.full_name;
+
+            await loadSellerDashboard();
+            await loadSellerProducts();
+        });
+
+        async function loadSellerDashboard() {
+            try {
+                const data = await API.get('/seller/dashboard');
+                document.getElementById('topbar-store-name').innerText = data.store_name || 'Seller Dashboard';
+                document.getElementById('stat-revenue').innerText = formatCurrency(data.total_revenue);
+                document.getElementById('stat-orders').innerText = data.total_orders;
+                document.getElementById('stat-products').innerText = data.total_products;
+                document.getElementById('stat-low-stock').innerText = data.low_stock_alerts;
+
+                const recentTbody = document.getElementById('seller-recent-orders-tbody');
+                if (!data.recent_orders || data.recent_orders.length === 0) {
+                    recentTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No orders yet.</td></tr>`;
+                    return;
+                }
+
+                recentTbody.innerHTML = data.recent_orders.map(o => `
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary);">#ORD-${o.id.toString().padStart(5, '0')}</td>
+                        <td>${o.customer_name}</td>
+                        <td style="color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString()}</td>
+                        <td style="font-weight: 700;">${formatCurrency(o.total_amount)}</td>
+                        <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                showToast(err.message || 'Error loading dashboard data.', 'error');
+            }
+        }
+
+        async function loadSellerProducts() {
+            const tbody = document.getElementById('seller-products-tbody');
+            try {
+                const products = await API.get('/seller/products');
+                if (!products || products.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No products listed yet. Click '+ Add Product' to start.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = products.map(p => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80'}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border);">
+                                <div>
+                                    <a href="/product-details.html?id=${p.id}" target="_blank" style="font-weight: 700; color: var(--text-primary);">${p.name}</a>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">${p.category ? p.category.name : 'Catalog'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-weight: 700;">${formatCurrency(p.price)}</td>
+                        <td>
+                            <span style="font-weight: 600; color: ${p.stock < 10 ? '#dc2626' : 'var(--text-primary)'};">
+                                ${p.stock} units
+                            </span>
+                        </td>
+                        <td>★ ${p.rating} (${p.num_reviews})</td>
+                        <td><span class="status-badge ${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td style="text-align: right;">
+                            <a href="/seller/edit-product.html?id=${p.id}" class="btn btn-outline btn-sm" style="margin-right: 6px;">Edit</a>
+                            <button onclick="deleteProduct(${p.id})" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #fca5a5;">Deactivate</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ef4444;">Failed to load products.</td></tr>`;
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to deactivate this product?')) return;
+            try {
+                await API.delete(`/products/${productId}`);
+                showToast('Product deactivated successfully.', 'info');
+                await loadSellerProducts();
+                await loadSellerDashboard();
+            } catch (err) {
+                showToast(err.message || 'Error deactivating product.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+

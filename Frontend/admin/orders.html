@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Orders | NexCommerce Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">⚙️</div>
+                <div class="sidebar-brand">Admin Console</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin/dashboard.html">📊 Analytics Overview</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/customers.html">👥 Customer Accounts</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sellers.html">🏪 Seller Merchants</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/products.html">📦 Product Catalog</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/admin/orders.html">🛍️ Platform Orders</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← Back to Overview</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Platform Orders Fulfillment</h2>
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm">Overview</a>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">All Customer Orders</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order Ref</th>
+                                <th>Customer</th>
+                                <th>Date Placed</th>
+                                <th>Payment</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Update Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-orders-tbody">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['admin'])) return;
+            await loadAdminOrders();
+        });
+
+        async function loadAdminOrders() {
+            const tbody = document.getElementById('admin-orders-tbody');
+            try {
+                const orders = await API.get('/admin/orders');
+                if (!orders || orders.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No orders recorded on the platform yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td style="font-weight: 800; color: var(--primary);">#ORD-${o.id.toString().padStart(5, '0')}</td>
+                        <td>
+                            <strong style="display: block;">User #${o.user_id}</strong>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">${o.shipping_address}</span>
+                        </td>
+                        <td style="color: var(--text-secondary);">${new Date(o.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <span style="font-weight: 600;">${o.payment_method}</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${o.payment_status}</div>
+                        </td>
+                        <td style="font-weight: 800;">${formatCurrency(o.total_amount)}</td>
+                        <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
+                        <td style="text-align: right;">
+                            <select class="form-select" style="padding: 6px 10px; font-size: 0.85rem; width: auto;" onchange="updateAdminStatus(${o.id}, this.value)">
+                                <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444;">Error loading platform orders.</td></tr>`;
+            }
+        }
+
+        async function updateAdminStatus(orderId, newStatus) {
+            try {
+                await API.put(`/admin/orders/${orderId}/status`, { status: newStatus });
+                showToast(`Order #ORD-${orderId} status updated to ${newStatus}!`, 'success');
+                await loadAdminOrders();
+            } catch (err) {
+                showToast(err.message || 'Error updating order status.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+

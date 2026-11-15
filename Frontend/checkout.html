@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <style>
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 36px;
+            padding: 40px 0 80px;
+        }
+        .checkout-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+        .payment-option-card {
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .payment-option-card.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        @media (max-width: 860px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">✨</div>
+                <span>Nex<span class="accent">Commerce</span></span>
+            </a>
+            <a href="/cart.html" class="nav-link">← Return to Cart</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="checkout-grid">
+            <!-- Checkout Form -->
+            <div class="checkout-card animate-fade-in">
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 24px;">Delivery & Shipping Details</h2>
+                
+                <form id="checkout-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" for="full_name">Recipient Name</label>
+                            <input type="text" id="full_name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 000-0000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="street">Street Address</label>
+                        <input type="text" id="street" class="form-input" placeholder="e.g. 100 Silicon Way, Suite 400" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label" for="city">City</label>
+                            <input type="text" id="city" class="form-input" placeholder="San Jose" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="state">State</label>
+                            <input type="text" id="state" class="form-input" placeholder="CA" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="zip">ZIP Code</label>
+                            <input type="text" id="zip" class="form-input" placeholder="95110" required>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 1.2rem; font-weight: 800; margin: 28px 0 16px;">Payment Method</h3>
+                    <input type="hidden" id="payment_method" value="Cash on Delivery">
+
+                    <div id="pay-cod" class="payment-option-card active" onclick="selectPayment('Cash on Delivery', this)">
+                        <input type="radio" name="pay_radio" checked>
+                        <div>
+                            <strong>Cash on Delivery (Demo Mode)</strong>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">Pay conveniently with cash or card upon product delivery.</p>
+                        </div>
+                    </div>
+
+                    <div id="pay-card" class="payment-option-card" onclick="selectPayment('Demo Online Card Payment', this)">
+                        <input type="radio" name="pay_radio">
+                        <div>
+                            <strong>Demo Online Instant Payment</strong>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;">Simulate immediate digital payment confirmation without real charges.</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="place-order-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 28px;">
+                        🔒 Confirm and Place Order
+                    </button>
+                </form>
+            </div>
+
+            <!-- Order Review Card -->
+            <div class="checkout-card animate-fade-in" style="background: #f8fafc; height: fit-content;">
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">Review Items</h3>
+                <div id="checkout-items-list" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;"></div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem;">
+                        <span>Subtotal:</span>
+                        <strong id="summary-subtotal">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem;">
+                        <span>Estimated Tax (5%):</span>
+                        <span id="summary-tax">$0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 0.95rem;">
+                        <span>Shipping:</span>
+                        <span style="color: var(--success); font-weight: 700;">FREE</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.35rem; font-weight: 800; color: var(--text-primary); border-top: 1px solid var(--border); padding-top: 14px;">
+                        <span>Order Total:</span>
+                        <span id="summary-total" style="color: var(--primary);">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!API.getToken()) {
+                showToast('Please sign in to proceed with checkout.', 'warning');
+                setTimeout(() => window.location.href = '/login.html?redirect=/checkout.html', 800);
+                return;
+            }
+
+            // Autofill user details if available
+            const user = API.getUser();
+            if (user) {
+                document.getElementById('full_name').value = user.full_name || '';
+                document.getElementById('phone').value = user.phone || '';
+            }
+
+            await loadCheckoutSummary();
+        });
+
+        function selectPayment(method, elem) {
+            document.getElementById('payment_method').value = method;
+            document.querySelectorAll('.payment-option-card').forEach(el => el.classList.remove('active'));
+            elem.classList.add('active');
+            elem.querySelector('input[type="radio"]').checked = true;
+        }
+
+        async function loadCheckoutSummary() {
+            try {
+                const cart = await API.get('/cart');
+                const items = cart.items || [];
+                if (items.length === 0) {
+                    showToast('Your cart is empty. Redirecting to catalog.', 'warning');
+                    setTimeout(() => window.location.href = '/products.html', 1000);
+                    return;
+                }
+
+                const list = document.getElementById('checkout-items-list');
+                list.innerHTML = items.map(item => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${item.product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80'}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border);">
+                            <div>
+                                <strong style="display: block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.product.name}</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Qty: ${item.quantity}</span>
+                            </div>
+                        </div>
+                        <strong style="color: var(--text-primary);">${formatCurrency(item.product.price * item.quantity)}</strong>
+                    </div>
+                `).join('');
+
+                const subtotal = cart.subtotal || 0;
+                const tax = Math.round(subtotal * 0.05 * 100) / 100;
+                const total = Math.round((subtotal + tax) * 100) / 100;
+
+                document.getElementById('summary-subtotal').innerText = formatCurrency(subtotal);
+                document.getElementById('summary-tax').innerText = formatCurrency(tax);
+                document.getElementById('summary-total').innerText = formatCurrency(total);
+            } catch (err) {
+                showToast(err.message || 'Error loading order preview.', 'error');
+            }
+        }
+
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const placeBtn = document.getElementById('place-order-btn');
+            placeBtn.disabled = true;
+            placeBtn.innerHTML = `<span class="spinner"></span> Processing Order...`;
+
+            const fullAddress = `${document.getElementById('street').value.trim()}, ${document.getElementById('city').value.trim()}, ${document.getElementById('state').value.trim()} ${document.getElementById('zip').value.trim()}`;
+            const paymentMethod = document.getElementById('payment_method').value;
+
+            try {
+                const order = await API.post('/orders', {
+                    shipping_address: fullAddress,
+                    payment_method: paymentMethod
+                });
+
+                showToast('Order placed successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = `/order-confirmation.html?id=${order.id}`;
+                }, 700);
+            } catch (err) {
+                showToast(err.message || 'Failed to place order.', 'error');
+                placeBtn.disabled = false;
+                placeBtn.innerHTML = '🔒 Confirm and Place Order';
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop All Products | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <style>
+        .shop-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 32px;
+            padding: 40px 0 80px;
+        }
+        .filter-sidebar {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 96px;
+        }
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-section {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .filter-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        .filter-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .filter-category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .filter-category-item:hover, .filter-category-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        @media (max-width: 900px) {
+            .shop-layout {
+                grid-template-columns: 1fr;
+            }
+            .filter-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">✨</div>
+                <span>Nex<span class="accent">Commerce</span></span>
+            </a>
+
+            <form id="global-search-form" class="nav-search">
+                <input type="text" id="global-search-input" placeholder="Search catalog products..." required>
+                <button type="submit" class="nav-search-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/products.html" class="nav-link active">Shop Catalog</a></li>
+                <li><a href="/orders.html" class="nav-link">My Orders</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="/cart.html" id="navbar-cart-btn" class="cart-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span id="cart-count-badge" class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navbar-auth-actions" style="display: flex; gap: 8px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="shop-layout">
+            <!-- Sidebar Filters -->
+            <aside class="filter-sidebar">
+                <div class="filter-title">
+                    <span>Filters</span>
+                    <button onclick="resetFilters()" class="btn btn-outline btn-sm" style="font-size: 0.78rem; padding: 4px 8px;">Reset</button>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-section">
+                    <span class="filter-label">Categories</span>
+                    <div id="filter-categories-list">
+                        <div class="filter-category-item active" onclick="setCategory(null, this)">All Categories</div>
+                    </div>
+                </div>
+
+                <!-- Price Filter -->
+                <div class="filter-section">
+                    <span class="filter-label">Price Range</span>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                        <input type="number" id="filter-min-price" class="form-input" placeholder="Min $" min="0" style="padding: 8px 10px; font-size: 0.85rem;">
+                        <span>-</span>
+                        <input type="number" id="filter-max-price" class="form-input" placeholder="Max $" min="0" style="padding: 8px 10px; font-size: 0.85rem;">
+                    </div>
+                    <button onclick="applyFilters()" class="btn btn-primary btn-sm btn-block">Apply Price</button>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="filter-section">
+                    <span class="filter-label">Minimum Rating</span>
+                    <select id="filter-rating" class="form-select" onchange="applyFilters()">
+                        <option value="">Any Rating</option>
+                        <option value="4.5">★ 4.5 & up</option>
+                        <option value="4.0">★ 4.0 & up</option>
+                        <option value="3.5">★ 3.5 & up</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- Product Listing -->
+            <main>
+                <!-- Top Toolbar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <h1 id="shop-header-title" style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">All Catalog Products</h1>
+                        <p id="shop-results-count" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">Loading products...</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-secondary);">Sort By:</span>
+                        <select id="shop-sort" class="form-select" style="width: auto; padding: 8px 14px;" onchange="applyFilters()">
+                            <option value="popular">Most Popular</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="newest">Newest Arrivals</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div id="products-catalog-grid" class="product-grid"></div>
+
+                <!-- Empty State -->
+                <div id="products-empty-state" style="display: none; text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 12px;">🔍</div>
+                    <h3 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">No matching products found</h3>
+                    <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 20px;">
+                        Try adjusting your filters, clearing price constraints, or searching for broader terms.
+                    </p>
+                    <button onclick="resetFilters()" class="btn btn-primary">Clear All Filters</button>
+                </div>
+
+                <!-- Pagination -->
+                <div id="pagination-wrapper" style="display: flex; justify-content: center; gap: 8px; margin-top: 48px;"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script src="/js/main.js"></script>
+    <script>
+        let currentCategory = null;
+        let currentPage = 1;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Read initial URL params
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get('q');
+            const cat = params.get('category');
+            if (query) {
+                document.getElementById('global-search-input').value = query;
+                document.getElementById('shop-header-title').innerText = `Search results for "${query}"`;
+            }
+            if (cat) {
+                currentCategory = parseInt(cat);
+            }
+
+            await loadSidebarCategories();
+            await fetchProducts();
+        });
+
+        async function loadSidebarCategories() {
+            try {
+                const categories = await API.get('/categories');
+                const list = document.getElementById('filter-categories-list');
+                categories.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = `filter-category-item ${currentCategory === c.id ? 'active' : ''}`;
+                    item.innerText = c.name;
+                    item.onclick = () => setCategory(c.id, item);
+                    list.appendChild(item);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function setCategory(catId, elem) {
+            currentCategory = catId;
+            document.querySelectorAll('.filter-category-item').forEach(el => el.classList.remove('active'));
+            elem.classList.add('active');
+            currentPage = 1;
+            fetchProducts();
+        }
+
+        function resetFilters() {
+            currentCategory = null;
+            document.getElementById('filter-min-price').value = '';
+            document.getElementById('filter-max-price').value = '';
+            document.getElementById('filter-rating').value = '';
+            document.getElementById('global-search-input').value = '';
+            document.getElementById('shop-header-title').innerText = 'All Catalog Products';
+            document.querySelectorAll('.filter-category-item').forEach((el, idx) => {
+                if (idx === 0) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+            currentPage = 1;
+            fetchProducts();
+        }
+
+        function applyFilters() {
+            currentPage = 1;
+            fetchProducts();
+        }
+
+        async function fetchProducts() {
+            const grid = document.getElementById('products-catalog-grid');
+            const emptyState = document.getElementById('products-empty-state');
+            const countText = document.getElementById('shop-results-count');
+
+            grid.innerHTML = Array(6).fill(0).map(() => `
+                <div class="product-card skeleton" style="height: 360px;"></div>
+            `).join('');
+            emptyState.style.display = 'none';
+
+            const params = {
+                page: currentPage,
+                limit: 12,
+                sort_by: document.getElementById('shop-sort').value
+            };
+
+            const search = document.getElementById('global-search-input').value.trim();
+            if (search) params.search = search;
+            if (currentCategory) params.category_id = currentCategory;
+
+            const minPrice = document.getElementById('filter-min-price').value;
+            if (minPrice) params.min_price = parseFloat(minPrice);
+
+            const maxPrice = document.getElementById('filter-max-price').value;
+            if (maxPrice) params.max_price = parseFloat(maxPrice);
+
+            const minRating = document.getElementById('filter-rating').value;
+            if (minRating) params.min_rating = parseFloat(minRating);
+
+            try {
+                const res = await API.get('/products', params);
+                const items = res.items || [];
+                countText.innerText = `Showing ${items.length} of ${res.total} products`;
+
+                if (items.length === 0) {
+                    grid.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                grid.innerHTML = items.map(p => renderProductCard(p)).join('');
+                renderPagination(res.total, 12);
+            } catch (err) {
+                showToast(err.message || 'Error loading products.', 'error');
+            }
+        }
+
+        function renderPagination(total, limit) {
+            const totalPages = Math.ceil(total / limit);
+            const wrapper = document.getElementById('pagination-wrapper');
+            if (totalPages <= 1) {
+                wrapper.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline'}" onclick="goToPage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+            wrapper.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            fetchProducts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
+

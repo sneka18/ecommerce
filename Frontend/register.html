@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">✨</div>
+                <span>Nex<span class="accent">Commerce</span></span>
+            </a>
+            <a href="/" class="nav-link">← Return to Store</a>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="auth-card animate-fade-in" style="max-width: 540px;">
+            <div class="auth-header">
+                <h1 class="auth-title">Create an Account</h1>
+                <p class="auth-subtitle">Join NexCommerce as a Customer or open a Seller store.</p>
+            </div>
+
+            <!-- Role Selector Toggle -->
+            <div style="display: flex; gap: 8px; background: #f1f5f9; padding: 6px; border-radius: var(--radius-md); margin-bottom: 24px;">
+                <button type="button" id="role-customer-btn" class="btn btn-block" style="background: #fff; box-shadow: var(--shadow-sm);" onclick="selectRole('customer')">
+                    👤 Customer
+                </button>
+                <button type="button" id="role-seller-btn" class="btn btn-block" style="background: transparent; color: var(--text-secondary);" onclick="selectRole('seller')">
+                    🏪 Seller Merchant
+                </button>
+            </div>
+
+            <form id="register-form">
+                <input type="hidden" id="role" value="customer">
+
+                <div class="form-group">
+                    <label class="form-label" for="full_name">Full Name</label>
+                    <input type="text" id="full_name" class="form-input" placeholder="e.g. Jane Smith" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="e.g. jane@example.com" required>
+                </div>
+
+                <div id="store-name-group" class="form-group" style="display: none;">
+                    <label class="form-label" for="store_name">Store / Business Name</label>
+                    <input type="text" id="store_name" class="form-input" placeholder="e.g. Horizon Audio & Tech">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 000-0000">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="At least 6 characters" minlength="6" required>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 10px;">
+                    Register Now
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px; font-size: 0.92rem; color: var(--text-secondary);">
+                Already have an account? <a href="/login.html" style="color: var(--primary); font-weight: 700;">Sign in here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        function selectRole(role) {
+            document.getElementById('role').value = role;
+            const custBtn = document.getElementById('role-customer-btn');
+            const sellerBtn = document.getElementById('role-seller-btn');
+            const storeGroup = document.getElementById('store-name-group');
+
+            if (role === 'seller') {
+                sellerBtn.style.background = '#fff';
+                sellerBtn.style.boxShadow = 'var(--shadow-sm)';
+                sellerBtn.style.color = 'var(--text-primary)';
+                custBtn.style.background = 'transparent';
+                custBtn.style.boxShadow = 'none';
+                custBtn.style.color = 'var(--text-secondary)';
+                storeGroup.style.display = 'block';
+                document.getElementById('store_name').required = true;
+            } else {
+                custBtn.style.background = '#fff';
+                custBtn.style.boxShadow = 'var(--shadow-sm)';
+                custBtn.style.color = 'var(--text-primary)';
+                sellerBtn.style.background = 'transparent';
+                sellerBtn.style.boxShadow = 'none';
+                sellerBtn.style.color = 'var(--text-secondary)';
+                storeGroup.style.display = 'none';
+                document.getElementById('store_name').required = false;
+            }
+        }
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner"></span> Creating Account...`;
+
+            const payload = {
+                full_name: document.getElementById('full_name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value,
+                phone: document.getElementById('phone').value.trim() || null,
+                role: document.getElementById('role').value,
+                store_name: document.getElementById('store_name').value.trim() || null
+            };
+
+            try {
+                const response = await API.post('/auth/register', payload);
+                API.setAuth(response.access_token, response.user);
+                showToast('Registration successful! Welcome to NexCommerce.', 'success');
+
+                setTimeout(() => {
+                    if (response.user.role === 'seller') {
+                        window.location.href = '/seller/dashboard.html';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 600);
+            } catch (err) {
+                showToast(err.message || 'Registration failed.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Register Now';
+            }
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product (AI Enhanced) | NexCommerce Seller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">🏪</div>
+                <div class="sidebar-brand">Seller Portal</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/seller/dashboard.html">📊 Dashboard</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/seller/add-product.html">✨ Add New Product (AI)</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/seller/orders.html">🛍️ Store Orders</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/products.html">📦 Public Catalog</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← View Storefront</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Add New Product</h2>
+                <a href="/seller/dashboard.html" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+            </header>
+
+            <div class="dashboard-content" style="max-width: 900px;">
+                <div class="table-card" style="padding: 32px;">
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="font-size: 1.4rem; font-weight: 800;">Product Listing & Generative AI Studio</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.92rem;">
+                            Enter core product specs, click <strong>✨ Generate AI Description</strong> to let Google Gemini write compelling marketing copy, review/edit the output, and save to database.
+                        </p>
+                    </div>
+
+                    <form id="add-product-form">
+                        <!-- Basic Information -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="prod-name">Product Name *</label>
+                                <input type="text" id="prod-name" class="form-input" placeholder="e.g. SonicPro Wireless ANC Headphones" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="prod-category">Category *</label>
+                                <select id="prod-category" class="form-select" required>
+                                    <option value="">Select Category...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label" for="prod-price">Retail Price ($) *</label>
+                                <input type="number" id="prod-price" class="form-input" step="0.01" min="0.01" placeholder="99.99" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="prod-stock">Available Inventory Stock *</label>
+                                <input type="number" id="prod-stock" class="form-input" min="0" placeholder="25" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="prod-image">Image URL</label>
+                            <input type="url" id="prod-image" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+                            <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 4px;">Leave blank to use default modern placeholder.</span>
+                        </div>
+
+                        <!-- Generative AI Assistance Panel -->
+                        <div style="background: linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%); border: 1.5px solid #a78bfa; border-radius: var(--radius-md); padding: 22px; margin: 24px 0;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">✨</span>
+                                    <div>
+                                        <strong style="color: #5b21b6; font-size: 1.05rem;">Google Gemini Generative AI Assistant</strong>
+                                        <p style="font-size: 0.82rem; color: #6d28d9; margin-top: 2px;">Generate professional descriptions, highlights, and suggested use cases automatically.</p>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" id="btn-ai-generate" class="btn btn-ai btn-sm" onclick="triggerAIDescription()">
+                                        ✨ Generate AI Description
+                                    </button>
+                                    <button type="button" id="btn-ai-highlights" class="btn btn-outline btn-sm" style="border-color: #8b5cf6; color: #6d28d9; background: #fff;" onclick="triggerAIHighlights()">
+                                        ✨ Generate Highlights
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+                                <div>
+                                    <label class="form-label" style="font-size: 0.8rem; color: #4c1d95;">Key Features / Keywords (Optional for AI context)</label>
+                                    <input type="text" id="ai-features" class="form-input" placeholder="e.g. 40hr battery, ANC, USB-C, memory foam">
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.8rem; color: #4c1d95;">Target Audience (Optional)</label>
+                                    <input type="text" id="ai-target" class="form-input" placeholder="e.g. Commuters, remote professionals, students">
+                                </div>
+                            </div>
+
+                            <!-- Live AI Generated Preview Container -->
+                            <div id="ai-preview-container" class="ai-preview-box">
+                                <div class="ai-preview-header">
+                                    <div class="ai-preview-title">
+                                        <span>✨ Gemini Generated Content Preview</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm" style="background: #7c3aed; color: #fff;" onclick="applyAIContentToForm()">
+                                        ✓ Use & Edit in Form
+                                    </button>
+                                </div>
+                                <div id="ai-preview-text" style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.5; white-space: pre-line; margin-bottom: 10px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Editable Description -->
+                        <div class="form-group">
+                            <label class="form-label" for="prod-desc">Product Description (Editable)</label>
+                            <textarea id="prod-desc" class="form-textarea" rows="4" placeholder="Enter product description or click Generate AI Description above..."></textarea>
+                        </div>
+
+                        <!-- Editable Highlights -->
+                        <div class="form-group">
+                            <label class="form-label" for="prod-highlights">Product Highlights (Bullet Points, Editable)</label>
+                            <textarea id="prod-highlights" class="form-textarea" rows="3" placeholder="• 40 Hours Continuous Battery Life&#10;• Active Noise Cancellation (ANC)"></textarea>
+                        </div>
+
+                        <!-- Specifications -->
+                        <div class="form-group">
+                            <label class="form-label" for="prod-specs">Specifications (JSON Format or Key-Value)</label>
+                            <textarea id="prod-specs" class="form-textarea" rows="3" placeholder='{"Driver Size": "40mm", "Bluetooth": "5.3", "Battery": "40 hrs"}'></textarea>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 4px;">Valid JSON object (e.g. {"Key": "Value"}).</span>
+                        </div>
+
+                        <div style="display: flex; gap: 14px; margin-top: 32px;">
+                            <button type="submit" id="save-product-btn" class="btn btn-primary btn-lg" style="flex: 1;">
+                                💾 Save & Publish Product
+                            </button>
+                            <a href="/seller/dashboard.html" class="btn btn-outline btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        let cachedAIData = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['seller'])) return;
+            await loadCategoriesDropdown();
+        });
+
+        async function loadCategoriesDropdown() {
+            try {
+                const categories = await API.get('/categories');
+                const select = document.getElementById('prod-category');
+                categories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.innerText = c.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function triggerAIDescription() {
+            const name = document.getElementById('prod-name').value.trim();
+            const catSelect = document.getElementById('prod-category');
+            const categoryText = catSelect.options[catSelect.selectedIndex]?.text || '';
+            const price = parseFloat(document.getElementById('prod-price').value) || 50.0;
+            const features = document.getElementById('ai-features').value.trim();
+            const target = document.getElementById('ai-target').value.trim();
+
+            if (!name) {
+                showToast('Please enter a Product Name before generating AI copy.', 'warning');
+                document.getElementById('prod-name').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btn-ai-generate');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span> Generating with Gemini...`;
+
+            try {
+                const res = await API.post('/ai/generate-description', {
+                    product_name: name,
+                    category: categoryText || 'General',
+                    price: price,
+                    features: features || null,
+                    target_audience: target || null
+                });
+
+                cachedAIData = res.data;
+                const previewBox = document.getElementById('ai-preview-container');
+                const previewText = document.getElementById('ai-preview-text');
+
+                previewText.innerHTML = `
+                    <strong>Description:</strong>\n${cachedAIData.description}\n\n
+                    <strong>Highlights:</strong>\n${cachedAIData.highlights}
+                `;
+                previewBox.classList.add('active');
+                showToast('AI Description successfully created! Click "Use & Edit in Form" to apply.', 'success');
+            } catch (err) {
+                showToast(err.message || 'AI generation failed.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `✨ Generate AI Description`;
+            }
+        }
+
+        async function triggerAIHighlights() {
+            const name = document.getElementById('prod-name').value.trim();
+            const catSelect = document.getElementById('prod-category');
+            const categoryText = catSelect.options[catSelect.selectedIndex]?.text || '';
+            const desc = document.getElementById('prod-desc').value.trim();
+
+            if (!name) {
+                showToast('Please enter a Product Name first.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-ai-highlights');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span> Working...`;
+
+            try {
+                const res = await API.post('/ai/generate-highlights', {
+                    product_name: name,
+                    category: categoryText || 'General',
+                    description: desc || null
+                });
+
+                if (res.data && res.data.highlights) {
+                    document.getElementById('prod-highlights').value = res.data.highlights;
+                    showToast('Bullet highlights generated and applied!', 'success');
+                }
+            } catch (err) {
+                showToast(err.message || 'Error generating highlights.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `✨ Generate Highlights`;
+            }
+        }
+
+        function applyAIContentToForm() {
+            if (!cachedAIData) return;
+            if (cachedAIData.description) {
+                document.getElementById('prod-desc').value = cachedAIData.description;
+            }
+            if (cachedAIData.highlights) {
+                document.getElementById('prod-highlights').value = cachedAIData.highlights;
+            }
+            showToast('Applied AI content to editable fields!', 'info');
+        }
+
+        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('save-product-btn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<span class="spinner"></span> Saving Product...`;
+
+            let specsJson = document.getElementById('prod-specs').value.trim();
+            if (specsJson) {
+                try {
+                    JSON.parse(specsJson);
+                } catch {
+                    showToast('Invalid JSON in Specifications field. Please correct or leave empty.', 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '💾 Save & Publish Product';
+                    return;
+                }
+            }
+
+            const payload = {
+                name: document.getElementById('prod-name').value.trim(),
+                category_id: parseInt(document.getElementById('prod-category').value),
+                price: parseFloat(document.getElementById('prod-price').value),
+                stock: parseInt(document.getElementById('prod-stock').value),
+                image_url: document.getElementById('prod-image').value.trim() || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
+                description: document.getElementById('prod-desc').value.trim() || null,
+                ai_description: cachedAIData ? cachedAIData.description : null,
+                highlights: document.getElementById('prod-highlights').value.trim() || null,
+                specifications: specsJson || null
+            };
+
+            try {
+                const created = await API.post('/products', payload);
+                showToast(`Product '${created.name}' published successfully!`, 'success');
+                setTimeout(() => {
+                    window.location.href = '/seller/dashboard.html';
+                }, 800);
+            } catch (err) {
+                showToast(err.message || 'Error saving product.', 'error');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '💾 Save & Publish Product';
+            }
+        });
+    </script>
+</body>
+</html>
+

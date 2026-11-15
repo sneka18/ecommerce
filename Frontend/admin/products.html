@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Products Management | NexCommerce Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">⚙️</div>
+                <div class="sidebar-brand">Admin Console</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="/admin/dashboard.html">📊 Analytics Overview</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/customers.html">👥 Customer Accounts</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/sellers.html">🏪 Seller Merchants</a>
+                </li>
+                <li class="sidebar-item active">
+                    <a href="/admin/products.html">📦 Product Catalog</a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="/admin/orders.html">🛍️ Platform Orders</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm" style="color: #94a3b8; border-color: #334155;">← Back to Overview</a>
+                <button onclick="handleLogout()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #7f1d1d;">Logout</button>
+            </div>
+        </aside>
+
+        <div class="dashboard-main">
+            <header class="dashboard-topbar">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Catalog & Inventory Control</h2>
+                <a href="/admin/dashboard.html" class="btn btn-outline btn-sm">Overview</a>
+            </header>
+
+            <div class="dashboard-content">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">All Catalog Items</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Seller Store</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-products-tbody">
+                            <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth(['admin'])) return;
+            await loadAdminProducts();
+        });
+
+        async function loadAdminProducts() {
+            const tbody = document.getElementById('admin-products-tbody');
+            try {
+                const products = await API.get('/admin/products');
+                if (!products || products.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No products found in database.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = products.map(p => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&q=80'}" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border);">
+                                <div>
+                                    <a href="/product-details.html?id=${p.id}" target="_blank" style="font-weight: 700; color: var(--text-primary);">${p.name}</a>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">#PROD-${p.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${p.seller ? p.seller.store_name : 'N/A'}</td>
+                        <td>${p.category ? p.category.name : 'N/A'}</td>
+                        <td style="font-weight: 700;">${formatCurrency(p.price)}</td>
+                        <td style="font-weight: 600;">${p.stock}</td>
+                        <td>★ ${p.rating} (${p.num_reviews})</td>
+                        <td><span class="status-badge ${p.is_active ? 'active' : 'inactive'}">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td style="text-align: right;">
+                            <button onclick="toggleProduct(${p.id})" class="btn btn-outline btn-sm" style="${p.is_active ? 'color: #ef4444; border-color: #fca5a5;' : 'color: #059669; border-color: #6ee7b7;'}">
+                                ${p.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">Error loading products.</td></tr>`;
+            }
+        }
+
+        async function toggleProduct(productId) {
+            try {
+                const res = await API.put(`/admin/products/${productId}/status`);
+                showToast(res.message, 'info');
+                await loadAdminProducts();
+            } catch (err) {
+                showToast(err.message || 'Error updating product status.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+

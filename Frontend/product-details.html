@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 48px;
+            padding: 40px 0;
+        }
+        .gallery-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: sticky;
+            top: 96px;
+        }
+        .gallery-main-img {
+            width: 100%;
+            height: 440px;
+            object-fit: cover;
+        }
+        .details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .ai-product-insight-card {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            border: 1.5px solid #c4b5fd;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            color: #4c1d95;
+            position: relative;
+        }
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        .specs-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .specs-table td:first-child {
+            font-weight: 600;
+            color: var(--text-secondary);
+            width: 35%;
+            background: #f8fafc;
+        }
+        .review-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+        @media (max-width: 860px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            .gallery-box {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">✨</div>
+                <span>Nex<span class="accent">Commerce</span></span>
+            </a>
+
+            <form id="global-search-form" class="nav-search">
+                <input type="text" id="global-search-input" placeholder="Search catalog products..." required>
+                <button type="submit" class="nav-search-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+
+            <ul class="nav-links">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/products.html" class="nav-link">Shop Catalog</a></li>
+                <li><a href="/orders.html" class="nav-link">My Orders</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="/cart.html" id="navbar-cart-btn" class="cart-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span id="cart-count-badge" class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navbar-auth-actions" style="display: flex; gap: 8px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div style="padding: 18px 0 0; font-size: 0.88rem; color: var(--text-muted);">
+            <a href="/" style="color: var(--primary);">Home</a> / 
+            <a href="/products.html" style="color: var(--primary);">Catalog</a> / 
+            <span id="breadcrumb-product-name">Product</span>
+        </div>
+
+        <div class="details-grid">
+            <!-- Gallery View -->
+            <div class="gallery-box animate-fade-in">
+                <img id="product-detail-img" class="gallery-main-img" src="" alt="Product Image">
+            </div>
+
+            <!-- Details & Purchase Box -->
+            <div class="details-info animate-fade-in">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span id="product-detail-category" class="product-category" style="font-size: 0.95rem;">Category</span>
+                    <span id="product-detail-stock" class="status-badge active">In Stock</span>
+                </div>
+
+                <h1 id="product-detail-title" style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">
+                    Loading product details...
+                </h1>
+
+                <div style="display: flex; align-items: center; gap: 12px; font-size: 0.95rem;">
+                    <span id="product-detail-rating" class="product-rating" style="font-size: 1.1rem;">★ 4.8</span>
+                    <span id="product-detail-reviews-count" style="color: var(--text-secondary);">(0 customer reviews)</span>
+                    <span style="color: var(--border);">|</span>
+                    <span id="product-detail-seller" style="color: var(--text-secondary);">Sold by: Official Store</span>
+                </div>
+
+                <div style="font-size: 2.2rem; font-weight: 900; color: var(--text-primary); margin: 6px 0;">
+                    <span id="product-detail-price">$0.00</span>
+                </div>
+
+                <!-- Purchase Actions -->
+                <div style="display: flex; gap: 16px; align-items: center; padding: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: #fff;">
+                        <button type="button" class="btn btn-outline" style="border: none; padding: 10px 14px;" onclick="changeQty(-1)">-</button>
+                        <input type="number" id="purchase-qty" value="1" min="1" max="99" style="width: 50px; text-align: center; border: none; outline: none; font-weight: 700;">
+                        <button type="button" class="btn btn-outline" style="border: none; padding: 10px 14px;" onclick="changeQty(1)">+</button>
+                    </div>
+
+                    <button id="add-to-cart-btn" class="btn btn-primary btn-lg" style="flex: 1;">
+                        🛒 Add to Shopping Cart
+                    </button>
+                </div>
+
+                <!-- Gemini AI Shopping Insight Callout -->
+                <div class="ai-product-insight-card">
+                    <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.9rem; margin-bottom: 6px;">
+                        <span>✨ Google Gemini Product Insight</span>
+                    </div>
+                    <p id="gemini-product-insight-text" style="font-size: 0.92rem; line-height: 1.5;">
+                        Analyzing product specifications and buyer satisfaction metrics...
+                    </p>
+                </div>
+
+                <!-- AI Description & Highlights -->
+                <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">Product Overview</h3>
+                    <p id="product-detail-desc" style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;"></p>
+                </div>
+
+                <!-- Product Highlights -->
+                <div id="product-highlights-box" style="display: none;">
+                    <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px;">Key Highlights</h4>
+                    <div id="product-highlights-list" style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-line;"></div>
+                </div>
+
+                <!-- Technical Specifications -->
+                <div id="product-specs-box" style="display: none;">
+                    <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px;">Technical Specifications</h4>
+                    <table class="specs-table" id="product-specs-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Products Section (Item-KNN Recommender) -->
+        <section class="section" style="border-top: 1px solid var(--border); margin-top: 30px;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">✨ Similar Products You May Like</h2>
+                    <p class="section-subtitle">Discovered via K-Nearest Neighbors (KNN) Multi-Feature Cosine Similarity.</p>
+                </div>
+            </div>
+            <div id="similar-products-grid" class="product-grid"></div>
+        </section>
+
+        <!-- Customer Reviews & Submission -->
+        <section class="section" style="border-top: 1px solid var(--border);">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Customer Reviews & Ratings</h2>
+                    <p class="section-subtitle">Verified feedback from shoppers who purchased this item.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px;">
+                <!-- Existing Reviews List -->
+                <div id="reviews-container">
+                    <p style="color: var(--text-muted);">Loading reviews...</p>
+                </div>
+
+                <!-- Submit Review Form -->
+                <div style="background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; height: fit-content;">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 16px;">Write a Review</h3>
+                    <form id="add-review-form">
+                        <div class="form-group">
+                            <label class="form-label" for="review-rating">Rating</label>
+                            <select id="review-rating" class="form-select" required>
+                                <option value="5">★★★★★ 5 - Outstanding</option>
+                                <option value="4">★★★★☆ 4 - Very Good</option>
+                                <option value="3">★★★☆☆ 3 - Average</option>
+                                <option value="2">★★☆☆☆ 2 - Below Expectations</option>
+                                <option value="1">★☆☆☆☆ 1 - Poor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="review-comment">Your Feedback</label>
+                            <textarea id="review-comment" class="form-textarea" rows="4" placeholder="Share your experience with build quality, performance, and value..." required></textarea>
+                        </div>
+                        <button type="submit" id="submit-review-btn" class="btn btn-primary btn-block">
+                            Submit Verified Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script src="/js/main.js"></script>
+    <script>
+        let currentProductId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            currentProductId = parseInt(params.get('id'));
+
+            if (!currentProductId) {
+                showToast('Product ID not found.', 'error');
+                setTimeout(() => window.location.href = '/products.html', 1000);
+                return;
+            }
+
+            await loadProductDetails();
+            await loadSimilarProducts();
+            await loadReviews();
+            await loadGeminiInsight();
+        });
+
+        function changeQty(delta) {
+            const input = document.getElementById('purchase-qty');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+
+        async function loadProductDetails() {
+            try {
+                const prod = await API.get(`/products/${currentProductId}`);
+                document.title = `${prod.name} | NexCommerce AI`;
+                document.getElementById('breadcrumb-product-name').innerText = prod.name;
+                document.getElementById('product-detail-title').innerText = prod.name;
+                document.getElementById('product-detail-img').src = prod.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80';
+                document.getElementById('product-detail-category').innerText = prod.category ? prod.category.name : 'Catalog';
+                document.getElementById('product-detail-price').innerText = formatCurrency(prod.price);
+                document.getElementById('product-detail-rating').innerText = `★ ${prod.rating || '4.8'}`;
+                document.getElementById('product-detail-reviews-count').innerText = `(${prod.num_reviews || 0} reviews)`;
+                document.getElementById('product-detail-seller').innerText = `Sold by: ${prod.seller ? prod.seller.store_name : 'NexCommerce Certified'}`;
+
+                // Stock status
+                const stockBadge = document.getElementById('product-detail-stock');
+                if (prod.stock > 0) {
+                    stockBadge.className = 'status-badge active';
+                    stockBadge.innerText = `${prod.stock} in stock`;
+                } else {
+                    stockBadge.className = 'status-badge cancelled';
+                    stockBadge.innerText = 'Out of Stock';
+                    document.getElementById('add-to-cart-btn').disabled = true;
+                }
+
+                // Description
+                const descText = prod.ai_description || prod.description || 'Premium craftsmanship with rigorous quality assurance.';
+                document.getElementById('product-detail-desc').innerText = descText;
+
+                // Highlights
+                if (prod.highlights) {
+                    document.getElementById('product-highlights-box').style.display = 'block';
+                    document.getElementById('product-highlights-list').innerText = prod.highlights;
+                }
+
+                // Specifications
+                if (prod.specifications) {
+                    try {
+                        const specs = JSON.parse(prod.specifications);
+                        const table = document.getElementById('product-specs-table');
+                        table.innerHTML = Object.entries(specs).map(([k, v]) => `
+                            <tr>
+                                <td>${k}</td>
+                                <td>${v}</td>
+                            </tr>
+                        `).join('');
+                        document.getElementById('product-specs-box').style.display = 'block';
+                    } catch {}
+                }
+
+                // Setup Add to Cart action
+                document.getElementById('add-to-cart-btn').onclick = () => {
+                    const qty = parseInt(document.getElementById('purchase-qty').value) || 1;
+                    addToCart(prod.id, qty);
+                };
+            } catch (err) {
+                showToast(err.message || 'Could not load product.', 'error');
+            }
+        }
+
+        async function loadGeminiInsight() {
+            try {
+                const res = await API.get(`/ai/product-insights/${currentProductId}`);
+                if (res.data && res.data.insight) {
+                    document.getElementById('gemini-product-insight-text').innerText = res.data.insight;
+                }
+            } catch {}
+        }
+
+        async function loadSimilarProducts() {
+            const grid = document.getElementById('similar-products-grid');
+            try {
+                const items = await API.get(`/recommendations/similar/${currentProductId}`, { limit: 4 });
+                if (!items || items.length === 0) {
+                    grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1 / -1;">No similar items found.</p>`;
+                    return;
+                }
+                grid.innerHTML = items.map(item => renderProductCard(item.product, { isAiRecommended: true, reason: item.reason })).join('');
+            } catch {
+                grid.innerHTML = '';
+            }
+        }
+
+        async function loadReviews() {
+            const container = document.getElementById('reviews-container');
+            try {
+                const reviews = await API.get(`/products/${currentProductId}/reviews`);
+                if (!reviews || reviews.length === 0) {
+                    container.innerHTML = `<p style="color: var(--text-secondary);">No customer reviews yet. Be the first to share your experience!</p>`;
+                    return;
+                }
+
+                container.innerHTML = reviews.map(r => `
+                    <div class="review-card animate-fade-in">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="font-size: 0.95rem;">${r.user ? r.user.full_name : 'Verified Customer'}</strong>
+                            <span style="color: #f59e0b; font-weight: 700;">★ ${r.rating}.0</span>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">${r.comment || 'Great product!'}</p>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 8px;">
+                            Reviewed on ${new Date(r.created_at).toLocaleDateString()}
+                        </span>
+                    </div>
+                `).join('');
+            } catch {
+                container.innerHTML = `<p style="color: var(--text-muted);">Failed to load reviews.</p>`;
+            }
+        }
+
+        document.getElementById('add-review-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!API.getToken()) {
+                showToast('Please sign in to submit a review.', 'warning');
+                setTimeout(() => window.location.href = `/login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`, 800);
+                return;
+            }
+
+            const btn = document.getElementById('submit-review-btn');
+            btn.disabled = true;
+
+            const rating = parseInt(document.getElementById('review-rating').value);
+            const comment = document.getElementById('review-comment').value.trim();
+
+            try {
+                await API.post(`/products/${currentProductId}/reviews`, {
+                    product_id: currentProductId,
+                    rating,
+                    comment
+                });
+                showToast('Review submitted successfully! Thank you.', 'success');
+                document.getElementById('review-comment').value = '';
+                btn.disabled = false;
+                await loadReviews();
+                await loadProductDetails();
+            } catch (err) {
+                showToast(err.message || 'Error submitting review.', 'error');
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
+

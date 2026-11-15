@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | NexCommerce AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="/" class="brand">
+                <div class="brand-icon">✨</div>
+                <span>Nex<span class="accent">Commerce</span></span>
+            </a>
+            <a href="/" class="nav-link">← Return to Store</a>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="auth-card animate-fade-in">
+            <div class="auth-header">
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your account to continue shopping or managing your store.</p>
+            </div>
+
+            <!-- Demo Credentials Quick Fill Box -->
+            <div class="demo-credentials-box">
+                <strong>⚡ Quick Academic Demo Fill:</strong>
+                <div class="demo-btn-group">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="fillDemoCredentials('customer')">👤 Customer</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="fillDemoCredentials('seller')">🏪 Seller</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="fillDemoCredentials('admin')">⚙️ Admin</button>
+                </div>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="e.g. john@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 10px;">
+                    Sign In
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 24px; font-size: 0.92rem; color: var(--text-secondary);">
+                Don't have an account? <a href="/register.html" style="color: var(--primary); font-weight: 700;">Create one here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submit-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner"></span> Authenticating...`;
+
+            try {
+                const response = await API.post('/auth/login', { email, password });
+                API.setAuth(response.access_token, response.user);
+                showToast(`Welcome back, ${response.user.full_name}!`, 'success');
+
+                // Redirect based on role or URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect');
+
+                setTimeout(() => {
+                    if (redirect) {
+                        window.location.href = redirect;
+                    } else if (response.user.role === 'seller') {
+                        window.location.href = '/seller/dashboard.html';
+                    } else if (response.user.role === 'admin') {
+                        window.location.href = '/admin/dashboard.html';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 600);
+            } catch (err) {
+                showToast(err.message || 'Login failed. Please check your credentials.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Sign In';
+            }
+        });
+    </script>
+</body>
+</html>
+
