@@ -3,6 +3,7 @@ KNN Recommendation Service Module
 Loads the serialized Joblib KNN model and provides real-time personalized,
 similar-product, and cold-start recommendations.
 """
+import warnings
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import joblib
@@ -13,21 +14,49 @@ from app.core.config import settings
 from app.models.product import Product
 from app.models.interaction import UserInteraction
 
+# Try to import InconsistentVersionWarning safely
+try:
+    from sklearn.exceptions import InconsistentVersionWarning
+except ImportError:
+    InconsistentVersionWarning = UserWarning
+
 
 class KNNRecommenderService:
     def __init__(self):
         self.model_path = settings.ML_MODELS_DIR / "knn_recommender.joblib"
         self.bundle: Optional[Dict[str, Any]] = None
-        self._load_model()
+        self._model_loaded = False
 
-    def _load_model(self):
-        """Load trained Joblib model bundle if present."""
+    def _ensure_model_loaded(self):
+        """
+        Lazy load trained Joblib model bundle when first accessed.
+        This prevents ML deserialization from blocking application startup.
+        """
+        if self._model_loaded:
+            return
+        self._model_loaded = True
         try:
-            if self.model_path.exists():
-                self.bundle = joblib.load(self.model_path)
-                print(f"[KNNRecommenderService] Loaded model bundle from {self.model_path}")
+            target_path = self.model_path
+            if not target_path.exists():
+                # Check alternative candidate paths
+                candidates = [
+                    Path.cwd() / "ML" / "models" / "knn_recommender.joblib",
+                    settings.ROOT_DIR / "ML" / "models" / "knn_recommender.joblib",
+                    Path(__file__).resolve().parent.parent.parent.parent / "ML" / "models" / "knn_recommender.joblib",
+                    settings.BACKEND_DIR.parent / "ML" / "models" / "knn_recommender.joblib"
+                ]
+                for c in candidates:
+                    if c.exists():
+                        target_path = c
+                        break
+
+            if target_path.exists():
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+                    self.bundle = joblib.load(target_path)
+                print(f"[KNNRecommenderService] Loaded model bundle from {target_path}")
             else:
-                print(f"[KNNRecommenderService] Model file not found at {self.model_path}. Will use database fallback.")
+                print(f"[KNNRecommenderService] Model file not found at {target_path}. Will use database fallback.")
         except Exception as e:
             print(f"[KNNRecommenderService] Warning: Could not load model: {e}")
             self.bundle = None
@@ -36,6 +65,7 @@ class KNNRecommenderService:
         """
         Recommend items similar to a given product using Item-KNN feature similarity.
         """
+        self._ensure_model_loaded()
         # If model bundle is available and product is in matrix
         if self.bundle and "item_knn" in self.bundle and product_id in self.bundle["product_ids"]:
             try:
@@ -94,6 +124,7 @@ class KNNRecommenderService:
         If user has interactions -> User-KNN Collaborative recommendations.
         If new user or guest -> Cold-Start strategy (Popular & Trending).
         """
+        self._ensure_model_loaded()
         # Cold start check
         if not user_id:
             return self._cold_start_recommendations(db, limit, "Trending Products (Guest Visitor)")

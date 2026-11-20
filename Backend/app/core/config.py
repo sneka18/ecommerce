@@ -9,6 +9,20 @@ env_path = BASE_DIR / ".env"
 load_dotenv(dotenv_path=env_path)
 
 
+def _find_dir(dir_name: str, default_parent: Path) -> Path:
+    """Find directory relative to BASE_DIR, repo root, or current working directory."""
+    candidates = [
+        default_parent / dir_name,
+        BASE_DIR / dir_name,
+        Path.cwd() / dir_name,
+        Path.cwd().parent / dir_name,
+    ]
+    for c in candidates:
+        if c.exists() and c.is_dir():
+            return c
+    return default_parent / dir_name
+
+
 class Settings:
     PROJECT_NAME: str = os.getenv("APP_NAME", "AI-Enhanced E-Commerce Platform")
     API_PREFIX: str = os.getenv("API_PREFIX", "/api")
@@ -34,11 +48,11 @@ class Settings:
     # Gemini API
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
-    # Directories
+    # Directories (Resilient to project root or sub-directory executions)
     ROOT_DIR: Path = BASE_DIR.parent
     BACKEND_DIR: Path = BASE_DIR
-    FRONTEND_DIR: Path = BASE_DIR.parent / "Frontend"
-    ML_DIR: Path = BASE_DIR.parent / "ML"
+    FRONTEND_DIR: Path = _find_dir("Frontend", BASE_DIR.parent)
+    ML_DIR: Path = _find_dir("ML", BASE_DIR.parent)
     ML_MODELS_DIR: Path = ML_DIR / "models"
     ML_DATASET_DIR: Path = ML_DIR / "dataset"
 

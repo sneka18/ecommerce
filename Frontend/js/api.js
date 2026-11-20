@@ -3,10 +3,16 @@
  * Core API & Utility Module
  */
 
-// Always target the FastAPI backend on port 8000
-const API_BASE = (window.location.port === '8000') 
-    ? `${window.location.origin}/api` 
-    : 'http://127.0.0.1:8000/api';
+// Dynamic API Base URL:
+// In production (e.g. on Render) or when served directly by FastAPI (port 8000), use ${window.location.origin}/api.
+// When developing locally with an independent frontend dev server (e.g. port 5500/3000), route to local backend on 8000.
+const isLocalDevServer = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    && window.location.port !== ''
+    && window.location.port !== '8000';
+
+const API_BASE = isLocalDevServer 
+    ? 'http://127.0.0.1:8000/api' 
+    : `${window.location.origin}/api`;
 
 const API = {
     /**

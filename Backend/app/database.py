@@ -3,10 +3,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
 # Create SQLAlchemy engine for MySQL with PyMySQL driver
+# connect_timeout prevents indefinite connection hangs during health check/port scans
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=3600,
+    connect_args={"connect_timeout": 5},
     echo=False
 )
 
